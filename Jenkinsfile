@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        EC2_IP = "3.110.122.250"
+        EC2_IP = "65.0.108.68"
         SSH_KEY = "98908277"
     }
 
