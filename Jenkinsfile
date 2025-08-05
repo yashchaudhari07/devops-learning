@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        EC2_IP = "3.110.122.250"   // आपल्या EC2 ची Public IP
-        SSH_KEY = "98908277"    // Jenkins credentials ID
+        EC2_IP = "3.110.122.250"
+        SSH_KEY = "98908277"
     }
 
     stages {
@@ -17,8 +17,8 @@ pipeline {
         stage('Build React App') {
             steps {
                 dir('react-app') {
-                    sh 'npm install'
-                    sh 'npm run build'
+                    bat 'npm install'
+                    bat 'npm run build'
                 }
             }
         }
@@ -26,9 +26,9 @@ pipeline {
         stage('Deploy HTML') {
             steps {
                 sshagent([env.SSH_KEY]) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@$EC2_IP "sudo mkdir -p /var/www/html/html-site"
-                    scp -o StrictHostKeyChecking=no -r html-site/* ec2-user@$EC2_IP:/var/www/html/html-site/
+                    bat '''
+                    ssh -o StrictHostKeyChecking=no ec2-user=%EC2_IP% "sudo mkdir -p /var/www/html/html-site"
+                    pscp -r html-site\\* ec2-user@%EC2_IP%:/var/www/html/html-site/
                     '''
                 }
             }
@@ -37,9 +37,9 @@ pipeline {
         stage('Deploy React Build') {
             steps {
                 sshagent([env.SSH_KEY]) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@$EC2_IP "sudo mkdir -p /var/www/html/react-app"
-                    scp -o StrictHostKeyChecking=no -r react-app/build/* ec2-user@$EC2_IP:/var/www/html/react-app/
+                    bat '''
+                    ssh -o StrictHostKeyChecking=no ec2-user=%EC2_IP% "sudo mkdir -p /var/www/html/react-app"
+                    pscp -r react-app\\build\\* ec2-user@%EC2_IP%:/var/www/html/react-app/
                     '''
                 }
             }
@@ -48,10 +48,10 @@ pipeline {
         stage('Deploy Backend') {
             steps {
                 sshagent([env.SSH_KEY]) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@$EC2_IP "mkdir -p /home/ec2-user/backend"
-                    scp -o StrictHostKeyChecking=no -r backend/* ec2-user@$EC2_IP:/home/ec2-user/backend/
-                    ssh ec2-user@$EC2_IP "
+                    bat '''
+                    ssh ec2-user@%EC2_IP% "mkdir -p /home/ec2-user/backend"
+                    pscp -r backend\\* ec2-user@%EC2_IP%:/home/ec2-user/backend/
+                    ssh ec2-user@%EC2_IP% "
                         cd /home/ec2-user/backend &&
                         npm install &&
                         pm2 restart all || pm2 start index.js --name backend-api
