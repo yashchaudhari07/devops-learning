@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        EC2_IP = "65.0.108.68"
-        SSH_KEY = "98908277"
+        EC2_IP = "65.0.108.68"  // example: "13.233.144.22"
+        SSH_KEY = "98908277"     // Your Jenkins SSH credentials ID
     }
 
     stages {
@@ -33,7 +33,7 @@ pipeline {
             }
         }
 
-        stage('Deploy React') {
+        stage('Deploy React Build') {
             steps {
                 sshagent([env.SSH_KEY]) {
                     sh '''
@@ -48,10 +48,10 @@ pipeline {
             steps {
                 sshagent([env.SSH_KEY]) {
                     sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@$EC2_IP "mkdir -p /home/ec2-user/backend"
-                    scp -o StrictHostKeyChecking=no -r backend/* ec2-user@$EC2_IP:/home/ec2-user/backend/
+                    ssh -o StrictHostKeyChecking=no ec2-user@$EC2_IP "mkdir -p ~/backend"
+                    scp -o StrictHostKeyChecking=no -r backend/* ec2-user@$EC2_IP:~/backend/
                     ssh ec2-user@$EC2_IP "
-                        cd /home/ec2-user/backend &&
+                        cd ~/backend &&
                         npm install &&
                         pm2 restart all || pm2 start index.js --name backend-api
                     "
